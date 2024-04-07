@@ -42,6 +42,8 @@ func main() {
 		DB: dbQueries,
 	}
 
+	ScrapeFeeds(dbQueries, 2, 10)
+
 	fmt.Println("DB connected successfully")
 
 	router := chi.NewRouter()
@@ -60,7 +62,7 @@ func main() {
 	v1Router.Post("/users", Config.CreateUserHandler)
 	v1Router.Get("/users", Config.GetAllUser)
 	v1Router.Get("/current-user", Config.AuthMiddleWare(Config.GetUser))
-	
+
 	v1Router.Get("/feeds", Config.GetAllFeeds)
 	v1Router.Post("/feeds", Config.AuthMiddleWare(Config.CreateFeedHandler))
 
