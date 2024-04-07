@@ -56,7 +56,11 @@ func (apiConfig *ApiConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request,
 		return 
 	}
 
-	err = apiConfig.DB.DeleteFeedFollowsByID(r.Context(), feed_follow_id)
+	err = apiConfig.DB.DeleteFeedFollowsByID(r.Context(), database.DeleteFeedFollowsByIDParams{
+		ID: feed_follow_id,
+		UserID: user.ID,
+	})
+	
 	if err != nil {
 		HandleErrorJson(w, 400, fmt.Sprintf("Could not unfollow feed %v", err))
 		return
