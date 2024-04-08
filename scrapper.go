@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func ScrapeFeeds(db *database.Queries, DurationInMins int16, concurency int16) {
+func ScrapeFeeds(db *database.Queries, DurationInMins int, concurency int16) {
 	duration := time.Duration(DurationInMins) * time.Minute
 	ticker := time.NewTicker(duration)
 

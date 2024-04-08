@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/esiebomaj/scratch/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -20,18 +18,12 @@ type ApiConfig struct {
 
 func main() {
 
-	godotenv.Load()
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("PORT not configured")
+	AppEnvs, err := ConfigureEnvs()
+	if err != nil {
+		log.Fatalf("could not configre envs %v", err)
 	}
 
-	DB_URL := os.Getenv("DB_URL")
-	if port == "" {
-		log.Fatal("DB_URL not configured")
-	}
-
-	db, err := sql.Open("postgres", DB_URL)
+	db, err := sql.Open("postgres", AppEnvs.DB_URL)
 	if err != nil {
 		log.Fatalf("could not open db %v", err)
 	}
@@ -42,7 +34,7 @@ func main() {
 		DB: dbQueries,
 	}
 
-	go ScrapeFeeds(dbQueries, 10, 10)
+	go ScrapeFeeds(dbQueries, AppEnvs.SCRAPE_INTERVAL, 10)
 
 	fmt.Println("DB connected successfully")
 
@@ -74,11 +66,11 @@ func main() {
 	router.Mount("/v1", v1Router)
 
 	server := &http.Server{
-		Addr:    ":" + port,
+		Addr:    ":" + AppEnvs.PORT,
 		Handler: router,
 	}
 
-	fmt.Printf("server starting on PORT %v \n", port)
+	fmt.Printf("server starting on PORT %v \n", AppEnvs.PORT)
 	err = server.ListenAndServe()
 
 	if err != nil {
