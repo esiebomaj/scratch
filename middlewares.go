@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/esiebomaj/rssarg/internal/database"
+	"github.com/esiebomaj/rss-aggregator/internal/database"
 )
 
-type AuthHandler func (w http.ResponseWriter, r *http.Request, user database.User)
+type AuthHandler func(w http.ResponseWriter, r *http.Request, user database.User)
 
-func (apiConfig *ApiConfig) AuthMiddleWare (handler AuthHandler) http.HandlerFunc {
-	return func (w http.ResponseWriter, r *http.Request){
+func (apiConfig *ApiConfig) AuthMiddleWare(handler AuthHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		apiKey := r.Header.Get("Authorization")
 		if apiKey == "" {
 			HandleErrorJson(w, 401, "Authorization header required")

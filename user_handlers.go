@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/esiebomaj/rssarg/internal/database"
+	"github.com/esiebomaj/rss-aggregator/internal/database"
 	"github.com/google/uuid"
 )
 

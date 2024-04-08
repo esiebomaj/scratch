@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/esiebomaj/rssarg/internal/database"
+	"github.com/esiebomaj/rss-aggregator/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 )
-
 
 func (apiConfig *ApiConfig) FollowFeedHandler(w http.ResponseWriter, r *http.Request, user database.User) {
 	type Params struct {
@@ -53,14 +52,14 @@ func (apiConfig *ApiConfig) UnfollowFeed(w http.ResponseWriter, r *http.Request,
 
 	if err != nil {
 		HandleErrorJson(w, 400, fmt.Sprintf("invalid feed id %v", err))
-		return 
+		return
 	}
 
 	err = apiConfig.DB.DeleteFeedFollowsByID(r.Context(), database.DeleteFeedFollowsByIDParams{
-		ID: feed_follow_id,
+		ID:     feed_follow_id,
 		UserID: user.ID,
 	})
-	
+
 	if err != nil {
 		HandleErrorJson(w, 400, fmt.Sprintf("Could not unfollow feed %v", err))
 		return

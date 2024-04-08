@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/esiebomaj/rssarg/internal/database"
+	"github.com/esiebomaj/rss-aggregator/internal/database"
 	"github.com/google/uuid"
 )
 
@@ -33,13 +33,13 @@ func (apiConfig *ApiConfig) CreateFeedHandler(w http.ResponseWriter, r *http.Req
 		HandleErrorJson(w, 400, fmt.Sprintf("Could not create feed %v", err))
 		return
 	}
-	
+
 	_, er := apiConfig.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID: user.ID,
-		FeedID: feed.ID,
+		UserID:    user.ID,
+		FeedID:    feed.ID,
 	})
 
 	if er != nil {
