@@ -1,4 +1,4 @@
-module github.com/esiebomaj/rss-aggregator
+module github.com/esiebomaj/scratch
 
 go 1.21.1
 

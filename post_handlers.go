@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/esiebomaj/rss-aggregator/internal/database"
+	"github.com/esiebomaj/scratch/internal/database"
 )
 
 func (apiConfig *ApiConfig) GetRecentPosts(w http.ResponseWriter, r *http.Request, user database.User) {

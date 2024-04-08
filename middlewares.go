@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/esiebomaj/rss-aggregator/internal/database"
+	"github.com/esiebomaj/scratch/internal/database"
 )
 
 type AuthHandler func(w http.ResponseWriter, r *http.Request, user database.User)
