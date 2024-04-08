@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,13 +12,12 @@ import (
 )
 
 func ScrapeFeeds(db *database.Queries, DurationInMins int16, concurency int16) {
-	duration := time.Duration(DurationInMins) * time.Second
+	duration := time.Duration(DurationInMins) * time.Minute
 	ticker := time.NewTicker(duration)
 
-	for range ticker.C {
+	for ; ; <-ticker.C {
 		FetchFeeds(db, concurency)
 	}
-
 }
 
 func FetchFeeds(db *database.Queries, limit int16) {
@@ -28,7 +28,6 @@ func FetchFeeds(db *database.Queries, limit int16) {
 		fmt.Println("err fetching feeds from db", err)
 		return
 	}
-	fmt.Println(feeds)
 
 	wg := sync.WaitGroup{}
 	for _, feed := range feeds {
@@ -46,10 +45,10 @@ func FetchFeed(db *database.Queries, DBFeed database.Feed, wg *sync.WaitGroup) {
 	rssFeed, err := URLToRSS(DBFeed.Url)
 	if err != nil {
 		fmt.Printf("Error fetching rss for %v : %v ", DBFeed.Url, err)
+		return
 	}
 
 	// save posts in db
-	fmt.Println(rssFeed)
 	for _, post := range rssFeed.Channel.Items {
 		layout := "Mon, 02 Jan 2006 15:04:05 -0700"
 		PubDate, err := time.Parse(layout, post.PubDate)
@@ -57,7 +56,7 @@ func FetchFeed(db *database.Queries, DBFeed database.Feed, wg *sync.WaitGroup) {
 			fmt.Printf("Cannot parse time %v for post %v", post.PubDate, post.Title)
 			continue
 		}
-		db.CreatePost(context.Background(), database.CreatePostParams{
+		DBpost, err := db.CreatePost(context.Background(), database.CreatePostParams{
 			ID:            uuid.New(),
 			CreatedAt:     time.Now().UTC(),
 			UpdatedAt:     time.Now().UTC(),
@@ -67,7 +66,16 @@ func FetchFeed(db *database.Queries, DBFeed database.Feed, wg *sync.WaitGroup) {
 			PublishedDate: PubDate,
 			FeedID:        DBFeed.ID,
 		})
+		if err != nil {
+			if strings.Contains(err.Error(), "posts_link_unique") {
+				continue
+			}
+			fmt.Printf("could not save <%v> to DB: %v \n", post.Title, err)
+			continue
+		}
+		fmt.Println("New post discovered:", DBpost.Title)
 	}
+	fmt.Printf("\n*************** discovered %v posts for '%v' \n", len(rssFeed.Channel.Items), rssFeed.Channel.Title)
 
 	// update feed last_fetched_at field
 	db.UpdateLastFetchedAt(context.Background(), DBFeed.ID)

@@ -13,3 +13,13 @@ WHERE feed_id = $1
 ORDER BY created_at DESC
 LIMIT 10;
 
+-- name: GetRecentPostForUser :many
+SELECT p.* FROM posts p
+JOIN feed_follows ff ON p.feed_id = ff.feed_id
+WHERE ff.user_id = $1
+ORDER BY p.created_at DESC
+LIMIT $2;
+
+
+-- name: CheckPostExist :one
+SELECT EXISTS(SELECT 1 FROM posts WHERE link = $1);

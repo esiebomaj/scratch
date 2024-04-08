@@ -8,7 +8,7 @@ import (
 
 type RSSFeed struct {
 	Channel struct {
-		Title       string `xml:"name"`
+		Title       string `xml:"title"`
 		Link        string `xml:"link"`
 		Description string `xml:"description"`
 		Items       []Item `xml:"item"`

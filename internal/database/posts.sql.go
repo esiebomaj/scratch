@@ -12,6 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const checkPostExist = `-- name: CheckPostExist :one
+SELECT EXISTS(SELECT 1 FROM posts WHERE link = $1)
+`
+
+func (q *Queries) CheckPostExist(ctx context.Context, link string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkPostExist, link)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createPost = `-- name: CreatePost :one
 INSERT INTO posts (id, created_at, updated_at, title, link, description, feed_id, published_date)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -99,6 +110,51 @@ SELECT id, created_at, updated_at, published_date, title, link, description, fee
 
 func (q *Queries) GetAllPosts(ctx context.Context) ([]Post, error) {
 	rows, err := q.db.QueryContext(ctx, getAllPosts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.PublishedDate,
+			&i.Title,
+			&i.Link,
+			&i.Description,
+			&i.FeedID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRecentPostForUser = `-- name: GetRecentPostForUser :many
+SELECT p.id, p.created_at, p.updated_at, p.published_date, p.title, p.link, p.description, p.feed_id FROM posts p
+JOIN feed_follows ff ON p.feed_id = ff.feed_id
+WHERE ff.user_id = $1
+ORDER BY p.created_at DESC
+LIMIT $2
+`
+
+type GetRecentPostForUserParams struct {
+	UserID uuid.UUID
+	Limit  int32
+}
+
+func (q *Queries) GetRecentPostForUser(ctx context.Context, arg GetRecentPostForUserParams) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, getRecentPostForUser, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}

@@ -42,7 +42,7 @@ func main() {
 		DB: dbQueries,
 	}
 
-	ScrapeFeeds(dbQueries, 2, 10)
+	go ScrapeFeeds(dbQueries, 10, 10)
 
 	fmt.Println("DB connected successfully")
 
@@ -69,6 +69,8 @@ func main() {
 	v1Router.Post("/feed_follows", Config.AuthMiddleWare(Config.FollowFeedHandler))
 	v1Router.Delete("/feed_follows/{feedFollowID}", Config.AuthMiddleWare(Config.UnfollowFeed))
 	v1Router.Get("/feed_follows", Config.AuthMiddleWare(Config.GetUserFollowedFeeds))
+
+	v1Router.Get("/posts", Config.AuthMiddleWare(Config.GetRecentPosts))
 	router.Mount("/v1", v1Router)
 
 	server := &http.Server{
@@ -76,7 +78,7 @@ func main() {
 		Handler: router,
 	}
 
-	fmt.Printf("server starting on PORT %v", port)
+	fmt.Printf("server starting on PORT %v \n", port)
 	err = server.ListenAndServe()
 
 	if err != nil {
